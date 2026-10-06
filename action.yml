@@ -1,0 +1,71 @@
+name: "Markdown to Confluence (Markdown Importer)"
+description: "Publish Markdown files from your repo to Confluence Cloud pages with the Markdown Importer for Confluence REST API."
+author: "Yamuno team"
+branding:
+  icon: upload-cloud
+  color: blue
+
+inputs:
+  endpoint:
+    description: "Your site's Markdown Importer API endpoint URL (from the app's API tab). Store it as a secret."
+    required: true
+  token:
+    description: "Markdown Importer API token (from the app's API tab). Store it as a secret."
+    required: true
+  space-id:
+    description: "Confluence space ID or key to publish into."
+    required: true
+  parent-id:
+    description: "ID of the Confluence page that every published page goes under."
+    required: true
+  path:
+    description: "Folder to read Markdown files from, relative to the repository root."
+    required: false
+    default: docs
+  glob:
+    description: "Glob pattern for files inside path."
+    required: false
+    default: "**/*.md"
+  overwrite:
+    description: "Update a page that already has the same title under the parent. If false, existing pages fail with 400."
+    required: false
+    default: "true"
+  title-from:
+    description: "Where the page title comes from: frontmatter, h1 or filename. Falls back down that list when a source is missing."
+    required: false
+    default: frontmatter
+  dry-run:
+    description: "List the files and titles that would be published without calling the API."
+    required: false
+    default: "false"
+
+outputs:
+  created:
+    description: "Number of pages created."
+    value: ${{ steps.sync.outputs.created }}
+  updated:
+    description: "Number of pages updated."
+    value: ${{ steps.sync.outputs.updated }}
+  skipped:
+    description: "Number of files skipped (empty after front matter)."
+    value: ${{ steps.sync.outputs.skipped }}
+  failed:
+    description: "Number of files that failed."
+    value: ${{ steps.sync.outputs.failed }}
+
+runs:
+  using: composite
+  steps:
+    - id: sync
+      shell: bash
+      run: python3 "$GITHUB_ACTION_PATH/sync.py"
+      env:
+        INPUT_ENDPOINT: ${{ inputs.endpoint }}
+        INPUT_TOKEN: ${{ inputs.token }}
+        INPUT_SPACE_ID: ${{ inputs.space-id }}
+        INPUT_PARENT_ID: ${{ inputs.parent-id }}
+        INPUT_PATH: ${{ inputs.path }}
+        INPUT_GLOB: ${{ inputs.glob }}
+        INPUT_OVERWRITE: ${{ inputs.overwrite }}
+        INPUT_TITLE_FROM: ${{ inputs.title-from }}
+        INPUT_DRY_RUN: ${{ inputs.dry-run }}
