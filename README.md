@@ -37,8 +37,8 @@ In your repository, open **Settings > Secrets and variables > Actions** and add:
 
 | Secret | Value |
 | --- | --- |
-| `MDI_ENDPOINT` | The endpoint URL from the API tab |
-| `MDI_TOKEN` | The API token |
+| `CONFLUENCE_API_ENDPOINT` | The endpoint URL from the API tab |
+| `CONFLUENCE_API_TOKEN` | The API token |
 
 ### 3. Find the space and parent page IDs
 
@@ -72,8 +72,8 @@ jobs:
       - uses: actions/checkout@v4
       - uses: Yamuno-Software/confluence-markdown-sync@v1
         with:
-          endpoint: ${{ secrets.MDI_ENDPOINT }}
-          token: ${{ secrets.MDI_TOKEN }}
+          endpoint: ${{ secrets.CONFLUENCE_API_ENDPOINT }}
+          token: ${{ secrets.CONFLUENCE_API_TOKEN }}
           space-id: "98765432"
           parent-id: "123456789"
           path: docs
@@ -119,14 +119,14 @@ Page titles are unique within a Confluence space, and the title decides which pa
 
 ## Token expiry
 
-API tokens last at most 30 days. When the token expires, the action fails with a 403 and the message "The token has expired". Create a new token in the app and update the `MDI_TOKEN` secret. A recurring calendar reminder a few days before the expiry date saves a failed run.
+API tokens last at most 30 days. When the token expires, the action fails with a 403 and the message "The token has expired". Create a new token in the app and update the `CONFLUENCE_API_TOKEN` secret. A recurring calendar reminder a few days before the expiry date saves a failed run.
 
 ## Troubleshooting
 
 | Status | Meaning | What to do |
 | --- | --- | --- |
 | 400 | Bad request: the page exists and `overwrite` is `false`, or Confluence rejected the page (for example `parent-id` does not exist in the space) | Set `overwrite: true`, and check `parent-id` is a page in the space the token's creator can edit. |
-| 401 | Missing or invalid token | Check the `MDI_TOKEN` secret has no extra spaces or line breaks. |
+| 401 | Missing or invalid token | Check the `CONFLUENCE_API_TOKEN` secret has no extra spaces or line breaks. |
 | 402 | License expired | The app needs an active license when the token is created. Renew it and create a new token. |
 | 403 | Token expired | Create a new token and update the secret. |
 | 404 | Space or parent page not found | Check `space-id` and `parent-id`, and that the token's creator can access them. |
