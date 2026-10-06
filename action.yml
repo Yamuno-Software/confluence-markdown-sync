@@ -13,7 +13,7 @@ inputs:
     description: "Markdown Importer API token (from the app's API tab). Store it as a secret."
     required: true
   space-id:
-    description: "Confluence space ID or key to publish into."
+    description: "Numeric Confluence space ID to publish into (not the space key)."
     required: true
   parent-id:
     description: "ID of the Confluence page that every published page goes under."
@@ -27,7 +27,7 @@ inputs:
     required: false
     default: "**/*.md"
   overwrite:
-    description: "Update a page that already has the same title under the parent. If false, existing pages fail with 400."
+    description: "Update a page that already has the same title in the space. If false, existing pages fail with 400."
     required: false
     default: "true"
   title-from:

@@ -23,7 +23,7 @@ jobs:
         with:
           endpoint: ""
           token: ""
-          space-id: TEST
+          space-id: "1"
           parent-id: "1"
           path: tests/fixtures
           dry-run: true

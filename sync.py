@@ -28,6 +28,12 @@ FATAL_STATUSES = {
     403: "Forbidden. The token has expired. Create a new token in the app's API tab and update the secret.",
     404: "Not found. Check space-id and parent-id, and that the token's creator can access them.",
 }
+# The API also answers 400 when Confluence rejects the page, for example
+# because parent-id does not exist, so point at the IDs as well.
+BAD_REQUEST_HINT = (
+    "Check that the file is not empty, that parent-id is a page in the space, "
+    "and that the token's creator can edit it."
+)
 
 FRONT_MATTER_RE = re.compile(r"\A---[ \t]*\r?\n(.*?\r?\n)?(?:---|\.\.\.)[ \t]*(?:\r?\n|\Z)", re.DOTALL)
 FM_TITLE_RE = re.compile(r"^title[ \t]*:[ \t]*(.*?)[ \t]*$", re.MULTILINE)
@@ -201,6 +207,13 @@ def main():
         missing += [name for name, value in (("endpoint", endpoint), ("token", token)) if not value]
     if missing:
         raise SystemExit(f"::error::Missing required input(s): {', '.join(missing)}")
+    if not space_id.isdigit():
+        raise SystemExit(
+            f"::error::space-id must be the numeric space ID, not the space key ('{space_id}'). "
+            f"Find it in the app's Space selector. See {DOCS_URL}/api-reference#finding-space-and-page-ids"
+        )
+    if not parent_id.isdigit():
+        raise SystemExit(f"::error::parent-id must be a numeric page ID, got '{parent_id}'")
 
     files = find_files(root, pattern)
     if not files:
@@ -260,7 +273,8 @@ def main():
             rows.append((file, title, "updated"))
             counts["updated"] += 1
         else:
-            print(f"::error file={file}::{status or 'network error'} {message}")
+            hint = f" {BAD_REQUEST_HINT}" if status == 400 else ""
+            print(f"::error file={file}::{status or 'network error'} {message}{hint}")
             rows.append((file, title, f"failed ({status or 'network error'})"))
             counts["failed"] += 1
             if status in FATAL_STATUSES:

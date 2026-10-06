@@ -112,7 +112,7 @@ class RunTests(unittest.TestCase):
         env = {
             "INPUT_ENDPOINT": self.endpoint,
             "INPUT_TOKEN": "secret-token",
-            "INPUT_SPACE_ID": "DOCS",
+            "INPUT_SPACE_ID": "98765",
             "INPUT_PARENT_ID": "42",
             "INPUT_PATH": str(FIXTURES),
             "INPUT_DELAY": "0",
@@ -135,7 +135,7 @@ class RunTests(unittest.TestCase):
         self.assertEqual(titles, ["Getting started", "Install the app", "release notes"])
         first = Handler.received[0]
         self.assertEqual(first["auth"], "Bearer secret-token")
-        self.assertEqual(first["body"]["spaceId"], "DOCS")
+        self.assertEqual(first["body"]["spaceId"], "98765")
         self.assertEqual(first["body"]["parentId"], "42")
         self.assertTrue(first["body"]["overwrite"])
         self.assertNotIn("title:", first["body"]["content"])
@@ -169,6 +169,11 @@ class RunTests(unittest.TestCase):
             Path(docs, "b.md").write_text("# Same\n")
             with self.assertRaises(SystemExit):
                 self.run_sync(path=docs)
+        self.assertEqual(Handler.received, [])
+
+    def test_space_key_rejected(self):
+        with self.assertRaises(SystemExit):
+            self.run_sync(space_id="DOCS")
         self.assertEqual(Handler.received, [])
 
     def test_missing_inputs(self):

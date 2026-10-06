@@ -42,7 +42,11 @@ In your repository, open **Settings > Secrets and variables > Actions** and add:
 
 ### 3. Find the space and parent page IDs
 
+Both must be numeric IDs. The space key (for example `DOCS`) does not work.
+
 Open Markdown Importer for Confluence, pick the space in the **Space selector** and the parent page in the **Page selector**. Both show the ID you need. See [Finding space and page IDs](https://yamuno.com/docs/markdown-importer-for-confluence/rest-api/api-reference#finding-space-and-page-ids).
+
+You can also get the space ID from `https://<your-site>.atlassian.net/wiki/api/v2/spaces?keys=DOCS` while logged in (the `id` field), and the parent page ID from the page URL: `.../pages/123456789/...`.
 
 ### 4. Add the workflow
 
@@ -70,7 +74,7 @@ jobs:
         with:
           endpoint: ${{ secrets.MDI_ENDPOINT }}
           token: ${{ secrets.MDI_TOKEN }}
-          space-id: DOCS
+          space-id: "98765432"
           parent-id: "123456789"
           path: docs
 ```
@@ -83,11 +87,11 @@ To check titles before anything is published, run it once with `dry-run: true`.
 | --- | --- | --- | --- |
 | `endpoint` | yes | | Your site's API endpoint URL. Pass it from a secret. |
 | `token` | yes | | Markdown Importer API token. Pass it from a secret. |
-| `space-id` | yes | | Confluence space ID or key. |
+| `space-id` | yes | | Numeric Confluence space ID. The space key does not work. |
 | `parent-id` | yes | | ID of the page every published page goes under. |
 | `path` | no | `docs` | Folder to read files from. |
 | `glob` | no | `**/*.md` | Which files inside `path` to publish. |
-| `overwrite` | no | `true` | Update an existing page with the same title under the parent. With `false`, existing pages fail with 400. |
+| `overwrite` | no | `true` | Update an existing page with the same title in the space. With `false`, existing pages fail with 400. |
 | `title-from` | no | `frontmatter` | `frontmatter`, `h1` or `filename`. If the chosen source is missing, it falls back down that list. |
 | `dry-run` | no | `false` | Print files and titles without calling the API. `endpoint` and `token` can be empty. |
 
@@ -97,7 +101,7 @@ To check titles before anything is published, run it once with `dry-run: true`.
 
 ## Page titles
 
-Confluence matches pages by title and parent, so the title decides which page a file updates.
+Page titles are unique within a Confluence space, and the title decides which page a file updates. If a page with that title already exists anywhere in the space, it is updated and placed under `parent-id`. Use titles that will not clash with pages you edit by hand.
 
 - With `title-from: frontmatter`, a file with `title: Getting started` in its front matter becomes the page "Getting started". Without it, the first `# ` heading is used (headings inside code blocks are ignored), then the filename with `-` and `_` turned into spaces.
 - If two files end up with the same title, the action stops before sending anything and lists them.
@@ -121,7 +125,7 @@ API tokens last at most 30 days. When the token expires, the action fails with a
 
 | Status | Meaning | What to do |
 | --- | --- | --- |
-| 400 | Bad request, or the page exists and `overwrite` is `false` | Check the file is valid Markdown and not empty, or set `overwrite: true`. |
+| 400 | Bad request: the page exists and `overwrite` is `false`, or Confluence rejected the page (for example `parent-id` does not exist in the space) | Set `overwrite: true`, and check `parent-id` is a page in the space the token's creator can edit. |
 | 401 | Missing or invalid token | Check the `MDI_TOKEN` secret has no extra spaces or line breaks. |
 | 402 | License expired | The app needs an active license when the token is created. Renew it and create a new token. |
 | 403 | Token expired | Create a new token and update the secret. |
