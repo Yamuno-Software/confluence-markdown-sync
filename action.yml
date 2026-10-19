@@ -1,4 +1,4 @@
-name: "Markdown to Confluence (Markdown Importer)"
+name: "Markdown Importer for Confluence Sync"
 description: "Publish Markdown files from your repo to Confluence Cloud pages with the Markdown Importer for Confluence REST API."
 author: "Yamuno team"
 branding:
